@@ -32,3 +32,8 @@
 
 /app/assets/builds/*
 !/app/assets/builds/.keep
+/.idea/.gitignore
+/.idea/misc.xml
+/.idea/modules.xml
+/.idea/project-mgmt.iml
+/.idea/vcs.xml
