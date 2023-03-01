@@ -1,5 +1,5 @@
 class ProjectsController < ApplicationController
-  before_action :set_project, only: %i[ show edit update destroy ]
+  before_action :set_project, only: %i[ edit update destroy ]
 
   # GET /projects or /projects.json
   def index
@@ -8,7 +8,10 @@ class ProjectsController < ApplicationController
 
   # GET /projects/1 or /projects/1.json
   def show
+    @project = Project.includes(comments: [:audits]).find(params[:id])
     @audits = @project.audits
+    @comments = @project.comments.order(created_at: :asc)
+    @history_items = get_history_items(@comments, @audits)
   end
 
   # GET /projects/new
@@ -75,5 +78,9 @@ class ProjectsController < ApplicationController
     # Only allow a list of trusted parameters through.
     def project_params
       params.require(:project).permit(:name, :description, :status)
+    end
+
+    def get_history_items(comments, audits)
+      (comments + audits).sort_by(&:created_at)
     end
 end

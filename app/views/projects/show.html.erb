@@ -1,4 +1,4 @@
-<div class="mx-auto md:w-2/3 w-full flex">
+<div class="mx-auto w-full flex">
   <div class="mx-auto">
     <% if notice.present? %>
       <p class="py-2 px-3 bg-green-50 mb-5 text-green-500 font-medium rounded-lg inline-block" id="notice"><%= notice %></p>
@@ -12,11 +12,33 @@
     </div>
     <%= link_to 'Back to projects', projects_path, class: "ml-2 rounded-lg py-3 px-5 bg-gray-100 inline-block font-medium" %>
   </div>
-  <h1>Project History</h1>
 
-  <ul>
-    <% @audits.each do |audit| %>
-      <li><%= audit.user.email %> changed the status to <%= audit.new_attributes['status'] %> (changed at <%= audit.created_at.strftime('%Y-%m-%d %H:%M:%S') %>)</li>
+  <div class="ml-8">
+    <h1 class="text-lg font-medium mb-2">Project History</h1>
+
+    <% @history_items.each do |item| %>
+      <% if item.is_a?(Comment) %>
+        <div class="bg-gray-100 p-3 mb-3 rounded-lg">
+          <strong class="block text-gray-800 mb-2"><%= item.user.email %>:</strong>
+          <p class="text-gray-700"><%= item.content %></p>
+          <small class="block text-gray-500 mt-2">Commented on <%= item.created_at.strftime("%B %e, %Y at %l:%M %p") %></small>
+        </div>
+      <% elsif item.is_a?(Audited::Audit) && item.auditable_type == 'Project' %>
+        <% next unless item.audited_changes.key?('status') %>
+        <div class="bg-gray-100 p-3 mb-3 rounded-lg">
+          <strong class="block text-gray-800 mb-2"><%= item.user.email %>:</strong>
+          <p class="text-gray-700">Changed the status from <%= item.audited_changes['status'].first %> to <%= item.audited_changes['status'].last %></p>
+          <small class="block text-gray-500 mt-2">Updated on <%= item.created_at.strftime("%B %e, %Y at %l:%M %p") %></small>
+        </div>
+      <% end %>
     <% end %>
-  </ul>
+
+    <%= form_with(model: [@project, Comment.new], url: project_comments_path(@project), method: :post, remote: true, class: "mt-4") do |form| %>
+      <%= form.label "Add comment", class: "block text-gray-800 mb-2 font-medium" %>
+      <%= form.text_area :content, class: "block w-full p-2 border border-gray-400 rounded-lg mb-3", rows: 3 %>
+
+      <%= form.submit "Submit", class: "bg-gray-800 text-white py-2 px-4 rounded-lg hover:bg-gray-700" %>
+    <% end %>
+  </div>
 </div>
+
