@@ -12,4 +12,11 @@
     </div>
     <%= link_to 'Back to projects', projects_path, class: "ml-2 rounded-lg py-3 px-5 bg-gray-100 inline-block font-medium" %>
   </div>
+  <h1>Project History</h1>
+
+  <ul>
+    <% @audits.each do |audit| %>
+      <li><%= audit.user.email %> changed the status to <%= audit.new_attributes['status'] %> (changed at <%= audit.created_at.strftime('%Y-%m-%d %H:%M:%S') %>)</li>
+    <% end %>
+  </ul>
 </div>

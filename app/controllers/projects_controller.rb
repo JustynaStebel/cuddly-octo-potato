@@ -8,6 +8,7 @@ class ProjectsController < ApplicationController
 
   # GET /projects/1 or /projects/1.json
   def show
+    @audits = @project.audits
   end
 
   # GET /projects/new
