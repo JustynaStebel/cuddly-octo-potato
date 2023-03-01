@@ -12,16 +12,17 @@ class ProjectsController < ApplicationController
 
   # GET /projects/new
   def new
-    @project = Project.new
+    @project = current_user.projects.new
   end
 
   # GET /projects/1/edit
   def edit
+    redirect_to @project, alert: "You are not authorized to edit this project." if @project.user != current_user
   end
 
   # POST /projects or /projects.json
   def create
-    @project = Project.new(project_params)
+    @project = current_user.projects.new(project_params)
 
     respond_to do |format|
       if @project.save
@@ -37,23 +38,30 @@ class ProjectsController < ApplicationController
   # PATCH/PUT /projects/1 or /projects/1.json
   def update
     respond_to do |format|
-      if @project.update(project_params)
-        format.html { redirect_to project_url(@project), notice: "Project was successfully updated." }
-        format.json { render :show, status: :ok, location: @project }
+      if @project.user == current_user
+        if @project.update(project_params)
+          format.html { redirect_to project_url(@project), notice: "Project was successfully updated." }
+          format.json { render :show, status: :ok, location: @project }
+        else
+          format.html { render :edit, status: :unprocessable_entity }
+          format.json { render json: @project.errors, status: :unprocessable_entity }
+        end
       else
-        format.html { render :edit, status: :unprocessable_entity }
-        format.json { render json: @project.errors, status: :unprocessable_entity }
+        redirect_to @project, alert: "You are not authorized to edit this project."
       end
     end
   end
 
   # DELETE /projects/1 or /projects/1.json
   def destroy
-    @project.destroy
-
-    respond_to do |format|
-      format.html { redirect_to projects_url, notice: "Project was successfully destroyed." }
-      format.json { head :no_content }
+    if @project.user == current_user
+      @project.destroy
+      respond_to do |format|
+        format.html { redirect_to projects_url, notice: "Project was successfully destroyed." }
+        format.json { head :no_content }
+      end
+    else
+      redirect_to @project, alert: "You are not authorised to delete this project."
     end
   end
 
@@ -65,6 +73,6 @@ class ProjectsController < ApplicationController
 
     # Only allow a list of trusted parameters through.
     def project_params
-      params.require(:project).permit(:name, :description, :status, :user_id)
+      params.require(:project).permit(:name, :description, :status)
     end
 end
